@@ -1,0 +1,5 @@
+.strikeout {
+    text-decoration-color: red !important;
+    text-decoration: line-through;
+    text-decoration-style: double;
+}

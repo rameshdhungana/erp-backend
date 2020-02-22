@@ -1,0 +1,464 @@
+<!doctype html>
+{% load custom_tags %}
+{% load static %}
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Order Summary</title>
+    <link href="https://fonts.googleapis.com/css?family=Roboto:100,100i,300,300i,400,400i,500,500i,700,700i,900,900i"
+          rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="{% static 'style.css' %}">
+    <style>
+        body {
+            font-family: "Roboto", sans-serif;
+            font-size: 12px;
+            margin: 0;
+            padding: 0;
+            background-color: #f3f3f3;
+            color: #595959;
+        }
+
+        ul, ol, h1, h2, h3, h4, h5, h6, p {
+            outline: none !important;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        td, th {
+            padding: 10px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <table cellpadding="0" cellspacing="0" width="100%" height="100%">
+        <tbody>
+        <tr>
+            <td>
+                <table cellpadding="10" cellspacing="0" width="100%" align="center" bgcolor="#ffffff"
+                       style="border: 1px solid #ccc; padding: 15px;">
+                    <tr>
+                        <td width="50%">{% now "SHORT_DATETIME_FORMAT" %}</td>
+
+                    </tr>
+                    <tr>
+                        <td colspan="2"><h3
+                                style="font-size: 20px; font-weight: 300;">{{order_detail.user.first_name}}
+                            {{order_detail.user.last_name}} -Registrant
+                        </h3></td>
+                    </tr>
+                    <tr>
+                        <td colspan="2"><p style="color: #2d5683; font-weight: 600;">Orders & Payments</p></td>
+                    </tr>
+                    <tr>
+                        <td colspan="2"><p style="color: #2d5683; font-weight: 600; font-size: 17px;">Order Details</p>
+                            {% if not order_is_cancelled %}
+                            <p style="color: #2d5683; font-weight: 500; font-size: 17px;">
+                                {{order_detail.order_cfy}}
+                                -{{order_detail.order_number}} (Submitted
+                                on {% get_formatted_datetime order_detail.created_at %})</p>
+                            {% endif %}
+                            {% if order_is_cancelled %}
+                            <p style="color: #2d5683; font-weight: 500; font-size: 17px;">Your
+                                order
+                                has been cancelled
+                                on {% get_formatted_datetime orderDetail.created_at %}. The following striked items are
+                                your
+                                cancelled items.</p>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% if confirmation_codes %}
+                    <tr>
+                        <td colspan="2"><p><span
+                                style="color: #2d5683; font-weight: 600; font-size: 17px;">Confirmation Codes</span>`(Use
+                            confirmation codes with phone or email to view or edit order)`</p>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td colspan="2">
+                            <table cellpadding="0" cellspacing="0" width="100%" style="border-top:5px solid #148dd2;">
+                                <thead>
+                                <tr>
+                                    <th width="30%"
+                                        style="border: 1px solid #ccc; border-top: none; border-right: none">Attendee
+                                    </th>
+                                    <th style="border: 1px solid #ccc; border-top: none; border-right: none;">Phone
+                                        Number
+                                    </th>
+                                    <th style="border: 1px solid #ccc; border-top: none; border-right: none;">Email</th>
+                                    <th style="border: 1px solid #ccc; border-top: none;">Confirmation Code <br></th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for code in confirmation_codes %}
+                                <tr>
+                                    <td
+                                            style="border: 1px solid #ccc; border-top: none; border-right: none">
+                                        {{code.first_name}} {{code.last_name}}
+                                    </td>
+                                    <td
+                                            style="border: 1px solid #ccc; border-top: none; border-right: none;">
+                                        {% get_phone_number_or_dash code.phone_number %}
+                                    </td>
+                                    <td
+                                            style="border: 1px solid #ccc; border-top: none; border-right: none;">
+                                        {% get_email_or_dash code.email %}
+
+                                    </td>
+                                    <td style="border: 1px solid #ccc; border-top: none;">{{code.confirmation_code}}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+                    {% endif %}
+                    <tr>
+                        <td colspan="2">
+                            <table cellpadding="0" cellspacing="0" width="100%" style="border-top:5px solid #148dd2;">
+                                <thead>
+                                <tr>
+                                    <th width="30%"
+                                        style="border: 1px solid #ccc; border-top: none; border-right: none">
+                                        Item
+                                    </th>
+                                    <th style="border: 1px solid #ccc; border-top: none; border-right: none;">Registrant
+                                    </th>
+                                    <th style="border: 1px solid #ccc; border-top: none; border-right: none;">Rate</th>
+                                    <th style="border: 1px solid #ccc; border-top: none; border-right: none;">Qty</th>
+                                    <th style="border: 1px solid #ccc; border-top: none; border-right: none;">Amount
+                                        <br>
+                                        (AUD)
+                                    </th>
+                                    <th style="border: 1px solid #ccc; border-top: none;">Discount <br>
+                                        <br>
+                                        (AUD)
+                                    </th>
+                                    <th style="border: 1px solid #ccc; border-top: none; ">Amount Net <br>
+                                        Paid<br>
+                                        (AUD)
+                                    </th>
+
+
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr>
+                                    <td colspan="4"
+                                        style="border-left: 1px solid #ccc; border-bottom: 1px solid #ccc; color: #2d5683; font-weight: 500;">
+                                        <h5>For Attendee: {{order_detail.user.first_name}}
+                                            {{order_detail.user.last_name}}</h5>
+                                    </td>
+                                    <td colspan="3"
+                                        style="border-right: 1px solid #ccc; border-bottom: 1px solid #ccc; text-align: right; color: #2d5683; font-weight: 500;">
+                                        Order Number: {{order_detail.order_cfy}}-{{order_detail.order_number}}
+                                    </td>
+
+
+                                </tr>
+                                {% for item in main_attendee_order_items %}
+                                <!--<tr class="{% if item.transaction_type == 'Cancel' %} strike-out {% endif %}">-->
+                                <tr class="strike-out">
+                                    <td
+                                            style="border: 1px solid #ccc; border-top: none; border-right: none">
+                                        {{item.item_master.name}}
+                                    </td>
+                                    <td
+                                            style="border: 1px solid #ccc; border-top: none; border-right: none;">
+                                        {{order_detail.user.first_name}} {{order_detail.user.last_name}}
+                                    </td>
+                                    <td style="border: 1px solid #ccc; border-top: none; border-right: none;">
+                                        {{item.rate}}
+                                    </td>
+                                    <td style="border: 1px solid #ccc; border-top: none; border-right: none;">
+                                        {{item.quantity}}
+                                    </td>
+                                    <td
+                                            style="border: 1px solid #ccc; border-top: none; border-right: none;">
+                                        {{item.amount}}
+                                    </td>
+
+                                    <td
+                                            style="border: 1px solid #ccc; border-top: none;">${{item.discount}}
+                                    </td>
+                                    <td
+                                            style="border: 1px solid #ccc; border-top: none;">
+                                        {{item.amount_net}}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                                <tr>
+                                    <td style="border: 1px solid #ccc; border-top: none; border-right: none"><b>Order
+                                        Total</b></td>
+                                    <td style="border: 1px solid #ccc; border-top: none; border-right: none;"></td>
+                                    <td style="border: 1px solid #ccc; border-top: none; border-right: none;"></td>
+                                    <td style="border: 1px solid #ccc; border-top: none; border-right: none;"></td>
+                                    <td style="border: 1px solid #ccc; border-top: none; border-right: none;"></td>
+                                    <td style="border: 1px solid #ccc; border-top: none; border-right: none;"></td>
+                                    <td style="border: 1px solid #ccc; border-top: none;">
+                                        <b>${% generate_ordered_items_total_amount main_attendee_order_items %}</b>
+                                    </td>
+                                </tr>
+                                </tbody>
+                                {% for each_guest_items in guest_attendees_order_items %}
+                                <tbody>
+                                <tr>
+                                    <td colspan="4"
+                                        style="border-left: 1px solid #ccc; border-bottom: 1px solid #ccc; color: #2d5683; font-weight: 500;">
+                                        <h5>For
+                                            Attendee: {{each_guest_items.0.user.first_name }}
+                                            {{each_guest_items.0.user.last_name}}</h5>
+
+                                    </td>
+                                    <td colspan="3"
+                                        style="border-right: 1px solid #ccc; border-bottom: 1px solid #ccc; text-align: right; color: #2d5683; font-weight: 500;">
+                                        Order Number: {{order_detail.order_cfy}}-{{order_detail.order_number}}
+
+                                    </td>
+                                </tr>
+                                {% for item in each_guest_items %}
+                                <tr class="{% if item.transaction_type == 'Cancel' %} strike-out {% endif %}">
+                                    <td
+                                            style="border: 1px solid #ccc; border-top: none; border-right: none">
+                                        {{item.item_master.name}}
+                                    </td>
+                                    <td
+                                            style="border: 1px solid #ccc; border-top: none; border-right: none;">
+                                        {{order_detail.user.first_name}} {{order_detail.user.last_name}}
+                                    </td>
+                                    <td style="border: 1px solid #ccc; border-top: none; border-right: none;">
+                                        {{item.rate}}
+                                    </td>
+                                    <td style="border: 1px solid #ccc; border-top: none; border-right: none;">
+                                        {{item.quantity}}
+                                    </td>
+                                    <td
+                                            style="border: 1px solid #ccc; border-top: none; border-right: none;">
+                                        {{item.amount}}
+                                    </td>
+
+                                    <td
+                                            style="border: 1px solid #ccc; border-top: none; border-right: none;">
+                                        ${{item.discount}}
+                                    </td>
+                                    <td
+                                            style="border: 1px solid #ccc; border-top: none; ">
+                                        {{item.amount_net}}
+                                    </td>
+                                </tr>
+
+                                {% endfor %}
+                                <tr>
+                                    <td style="border: 1px solid #ccc; border-top: none; border-right: none"><b>Order
+                                        Total</b></td>
+                                    <td style="border: 1px solid #ccc; border-top: none;"></td>
+                                    <td style="border: 1px solid #ccc; border-top: none; "></td>
+                                    <td style="border: 1px solid #ccc; border-top: none; "></td>
+                                    <td style="border: 1px solid #ccc; border-top: none; "></td>
+                                    <td style="border: 1px solid #ccc; border-top: none; "></td>
+                                    <td style="border: 1px solid #ccc; border-top: none;">
+                                        <b>
+                                            ${% generate_ordered_items_total_amount each_guest_items %}
+                                        </b>
+                                    </td>
+                                </tr>
+                                </tbody>
+                                {% endfor %}
+                            </table>
+                        </td>
+                    </tr>
+                    {% if service_charge_and_tax_items %}
+                    <tr>
+                        <td colspan="2"><p style="color: #2d5683; font-weight: 600; font-size: 17px;">
+                            Service Charges & Taxes </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <table cellpadding="0" cellspacing="0" width="100%" style="border-top:5px solid #148dd2;">
+                                <thead>
+                                <tr>
+                                    <th width="30%"
+                                        style="border: 1px solid #ccc; border-top: none; border-right: none">Name
+                                    </th>
+                                    <th style="border: 1px solid #ccc; border-top: none; border-right: none;">Type</th>
+                                    <th style="border: 1px solid #ccc; border-top: none; border-right: none;">Date</th>
+                                    <th style="border: 1px solid #ccc; border-top: none;">Amount <br>(AUD)</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for item in service_charge_and_tax_items %}
+
+                                <tr>
+                                    <td
+                                            style="border: 1px solid #ccc; border-top: none; border-right: none">
+                                        {{item.item_master.name}}
+                                    </td>
+                                    <td
+                                            style="border: 1px solid #ccc; border-top: none; border-right: none;">
+                                        {% get_type_of_tax_item item.item_master %}
+                                    </td>
+                                    <td
+                                            style="border: 1px solid #ccc; border-top: none; border-right: none;">
+                                        {% get_formatted_datetime item.created_at %}
+
+                                    </td>
+
+                                    <td style="border: 1px solid #ccc; border-top: none;">${{item.amount_net}}</td>
+                                </tr>
+                                {% endfor %}
+
+                                <tr>
+                                    <td style="border: 1px solid #ccc; border-top: none; border-right: none">
+                                        <b>Net Service Charge and Taxes</b></td>
+                                    <td style="border: 1px solid #ccc; border-top: none;"></td>
+                                    <td style="border: 1px solid #ccc; border-top: none; "></td>
+                                    <td style="border: 1px solid #ccc; border-top: none;">
+                                        <b>${% generate_ordered_items_total_amount service_charge_and_tax_items %}</b>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+                    {% endif %}
+                    {% if coupon_items %}
+
+                    <tr>
+                        <td colspan="2"><p style="color: #2d5683; font-weight: 600; font-size: 17px;">Coupons</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <table cellpadding="0" cellspacing="0" width="100%" style="border-top:5px solid #148dd2;">
+                                <thead>
+                                <tr>
+                                    <th width="30%"
+                                        style="border: 1px solid #ccc; border-top: none; border-right: none">Type
+                                    </th>
+                                    <th style="border: 1px solid #ccc; border-top: none; border-right: none;">Coupon
+                                        Code
+                                    </th>
+                                    <th style="border: 1px solid #ccc; border-top: none; border-right: none;">Date</th>
+                                    <th style="border: 1px solid #ccc; border-top: none; border-right: none;">Amount
+                                        Limit
+                                    </th>
+                                    <th style="border: 1px solid #ccc; border-top: none;">Amount Used<br>(AUD)</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for item in coupon_items %}
+                                <tr>
+                                    <td
+                                            style="border: 1px solid #ccc; border-top: none; border-right: none">
+                                        {{item.coupon.type}}
+                                    </td>
+                                    <td
+                                            style="border: 1px solid #ccc; border-top: none; border-right: none;">
+                                        {{item.coupon.coupon_code}}
+                                    </td>
+                                    <td
+                                            style="border: 1px solid #ccc; border-top: none; border-right: none;">
+                                        {% get_formatted_datetime item.created_at %}
+                                    </td>
+                                    <td
+                                            style="border: 1px solid #ccc; border-top: none; border-right: none;">
+                                        ${{ item.coupon.amount_limit }}
+                                    </td>
+                                    <!--<td style="border: 1px solid #ccc; border-top: none; border-right: none;">6632</td>-->
+                                    <td style="border: 1px solid #ccc; border-top: none;">
+                                        ${{ item.amount_net }}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                                <tr>
+                                    <td style="border: 1px solid #ccc; border-top: none; border-right: none">
+                                        <b>Total Coupon Amount Used</b></td>
+                                    <td style="border: 1px solid #ccc; border-top: none;"></td>
+                                    <td style="border: 1px solid #ccc; border-top: none;"></td>
+                                    <td style="border: 1px solid #ccc; border-top: none; "></td>
+                                    <td style="border: 1px solid #ccc; border-top: none;">
+                                        <b>${% generate_coupon_item_total_amount coupon_items %}</b>
+                                    </td>
+                                </tr>
+
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+                    {% endif %}
+                    {% if payment_items %}
+
+                    <tr>
+                        <td colspan="2"><p style="color: #2d5683; font-weight: 600; font-size: 17px;">Payments &
+                            Refunds</p>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td colspan="2">
+                            <table cellpadding="0" cellspacing="0" width="100%" style="border-top:5px solid #148dd2;">
+                                <thead>
+                                <tr>
+                                    <th width="30%"
+                                        style="border: 1px solid #ccc; border-top: none; border-right: none">Type
+                                    </th>
+                                    <th style="border: 1px solid #ccc; border-top: none; border-right: none;">Method
+                                    </th>
+                                    <th style="border: 1px solid #ccc; border-top: none; border-right: none;">Date</th>
+                                    <th style="border: 1px solid #ccc; border-top: none; border-right: none;">Ref #</th>
+                                    <th style="border: 1px solid #ccc; border-top: none;">Amount <br>(AUD)</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for item in payment_items%}
+                                <tr>
+                                    <td
+                                            style="border: 1px solid #ccc; border-top: none; border-right: none">
+                                        {{item.item_master.name}}
+                                    </td>
+                                    <td
+                                            style="border: 1px solid #ccc; border-top: none; border-right: none;">
+                                        {{item.item_master.name}}
+                                    </td>
+                                    <td
+                                            style="border: 1px solid #ccc; border-top: none; border-right: none;">
+                                        {% get_formatted_datetime item.created_at %}
+                                    </td>
+                                    <td
+                                            style="border: 1px solid #ccc; border-top: none; border-right: none;">
+                                        {{item.transaction_reference_id}}
+                                    </td>
+                                    <td style="border: 1px solid #ccc; border-top: none;">${{item.amount_final}}</td>
+                                </tr>
+                                {% endfor %}
+                                <tr>
+                                    <td style="border: 1px solid #ccc; border-top: none; border-right: none">
+                                        <b>Total</b></td>
+                                    <td style="border: 1px solid #ccc; border-top: none;"></td>
+                                    <td style="border: 1px solid #ccc; border-top: none; "></td>
+                                    <td style="border: 1px solid #ccc; border-top: none;">
+                                    <td style="border: 1px solid #ccc; border-top: none;">
+                                        <b>${% generate_ordered_items_total_amount payment_items %}</b>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+                    {% endif %}
+                </table>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+</body>
+</html>
